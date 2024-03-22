@@ -1,4 +1,5 @@
 from enum import Enum
+from TweetEngine import TweetEngine
 from UserEngine import UserEngine, UserNotFoundException
 from UserEngine import State as UserState
 from Helper import is_valid_api, is_valid_username
@@ -35,6 +36,7 @@ class BackendEngine:
             raise ApiNotFoundException(f"Api couldn't be initialized. Location: %s" % get_current_database())
 
         self._user_engine = UserEngine(self._api, username)
+        self._tweet_engine = TweetEngine(self._api)
 
     async def setup(self) -> None:
         """
@@ -42,6 +44,7 @@ class BackendEngine:
         :return:
         """
         await self._user_engine.setup()
+        await self._tweet_engine.setup()
 
     def get_current_state(self) -> State:
         if self._user_engine.get_current_state() != UserState.SETUP:
