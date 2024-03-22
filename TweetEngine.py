@@ -26,15 +26,15 @@ class TweetEngine:
 
         self._api = api
 
-    def setup(self):
+    async def setup(self):
         self._state = State.SETUP
 
     def get_current_state(self):
         return self._state
 
-    async def get_tweet_from_user_by_interval(self, user: User, start_time: str, final_time: str) -> list[Tweet]:
+    async def get_tweet_from_user_by_interval(self, user: User, start_time: str, final_time: str, limit=1) -> list[Tweet]:
         """
-        Time is in YYYY-MM-DD format.
+        Time is in YYYY-MM-DD format. Ex: 2023-01-01
         :param user:
         :param start_time:
         :param final_time:
@@ -56,5 +56,5 @@ class TweetEngine:
 
         print(f"TweetEngine: Given search query is: %s" % search_query)
 
-        return await gather(self._api.search(search_query, 1))
+        return await gather(self._api.search(search_query, limit=limit))
 

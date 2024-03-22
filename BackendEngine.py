@@ -1,5 +1,6 @@
 from enum import Enum
 from TweetEngine import TweetEngine
+from TweetEngine import State as TweetState
 from UserEngine import UserEngine, UserNotFoundException
 from UserEngine import State as UserState
 from Helper import is_valid_api, is_valid_username
@@ -50,14 +51,26 @@ class BackendEngine:
         if self._user_engine.get_current_state() != UserState.SETUP:
             return State.NOT_SETUP
 
-        return State.SETUP
+        if self._tweet_engine.get_current_state() != TweetState.SETUP:
+            return State.NOT_SETUP
 
-    async def get_users_last_tweet(self) -> Tweet:
-        if self.get_current_state() != State.SETUP:
-            raise EngineNotSetupException("")
+        return State.SETUP
 
     def get_current_user(self) -> User:
         if self.get_current_state() != State.SETUP:
             raise EngineNotSetupException("")
 
         return self._user_engine.get_current_user()
+
+    async def get_tweets(self, limit=1) -> list[Tweet]:
+        """
+        Set limit to higher if you want to fetch more. But don't exceed 1000 tweets per DAY!!!
+        :param limit:
+        :return: 
+        """
+
+        if self.get_current_state() != State.SETUP:
+            raise EngineNotSetupException("Backend Engine: _tweet_engine is not setup.")
+
+        return await self._tweet_engine.get_tweet_from_user_by_interval(self.get_current_user(),
+                                                                        "2024-01-01", "2024-01-02", limit)

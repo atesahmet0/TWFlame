@@ -10,10 +10,13 @@ async def main():
     backend = BackendEngine("ntvspor")
     await backend.setup()
 
-    print(backend.get_current_user().profileImageUrl)
+    tweets = await backend.get_tweets()
+    print(i.rawContent for i in tweets)
+    for i in tweets:
+        print(i.rawContent)
 
 
-async def get_tweets_of_user_by_username(api: API, user_name: str, initial_date: str = "", final_date: str = "",
+async def get_tweets_of_user_by_intervar(api: API, user_name: str, initial_date: str = "", final_date: str = "",
                                          limit=20):
     """
     Search for user's tweets by date.
