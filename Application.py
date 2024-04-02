@@ -2,6 +2,9 @@ import tkinter as tk
 import sys
 from loguru import logger
 from Helper import is_valid_date
+import tkinter.ttk as ttk
+from BackendEngine import BackendEngine
+from TweetPage import TweetPage
 
 
 class Application(tk.Frame):
@@ -12,46 +15,17 @@ class Application(tk.Frame):
         self.create_widgets()
 
     def create_widgets(self):
-        self.page1 = tk.Frame(self)
+        # Page 1
+        self.page1 = TweetPage(self)
+
+
+
+
+        # Page 2
         self.page2 = tk.Frame(self)
 
-        self.page1_inputs_frame = tk.Frame(self.page1)
-        self.page1_inputs_frame.grid(row=0, column=0, sticky='w')
-        self.username_label = tk.Label(self.page1_inputs_frame, text="Username")
-        self.username_label.grid(row=0, column=0, sticky='w')
-
-        self.start_date_label = tk.Label(self.page1_inputs_frame, text="Start Date")
-        self.start_date_label.grid(row=0, column=2, sticky='w')
-
-        self.start_date_entry = tk.Entry(self.page1_inputs_frame)
-        self.start_date_entry.grid(row=0, column=3, sticky='w')
-
-        self.final_date_label = tk.Label(self.page1_inputs_frame, text="Final Date")
-        self.final_date_label.grid(row=0, column=4, sticky='w')
-
-        self.final_date_entry = tk.Entry(self.page1_inputs_frame)
-        self.final_date_entry.grid(row=0, column=5, sticky='w')
-
-        self.page1_date_info_label = tk.Label(self.page1_inputs_frame, text="Date Format: 'YYYY-MM-DD'")
-        self.page1_date_info_label.grid(row=0, column=6, sticky='w')
-
-        self.username_entry = tk.Entry(self.page1_inputs_frame)
-        self.username_entry.grid(row=0, column=1, sticky='w')
-
-        self.page1_button = tk.Button(self.page1, text="Submit", command=self.submit_button)
-        self.page1_button.grid(row=2, column=0, sticky='w')
-
-        self.console_output = tk.Text(self.page1)
-        self.console_output.grid(row=3, column=0, sticky='nsew')
-        # Redirect stdout to the console_output
-        text_redirector = TextRedirector(self.console_output)
-        sys.stdout = text_redirector
-        sys.stdin = text_redirector
-        sys.stderr = text_redirector
-        logger.add(widget_sink(self.console_output))
-
-        self.page1.grid_rowconfigure(3, weight=1)
-        self.page1.grid_columnconfigure(0, weight=1)
+        self.tree = ttk.Treeview(self.page2, show='headings')
+        self.tree.grid(row=2, column=0, sticky='nsew')
 
         self.username_label_page2 = tk.Label(self.page2, text="Username")
         self.username_label_page2.grid(row=0, column=0, sticky='w')
@@ -59,32 +33,20 @@ class Application(tk.Frame):
         self.username_entry_page2 = tk.Entry(self.page2)
         self.username_entry_page2.grid(row=1, column=0, sticky='w')
 
+        self.page2.grid_rowconfigure(2, weight=1)
+        self.page2.grid_columnconfigure(0, weight=1)
+
         self.navbar = tk.Frame(self)
         self.navbar.pack(side='bottom', fill='x')
 
-        self.page1_button = tk.Button(self.navbar, text="Page 1", command=self.show_page1)
+        # Navbar
+        self.page1_button = tk.Button(self.navbar, text="Tweet", command=self.show_page1)
         self.page1_button.pack(side='left')
 
-        self.page2_button = tk.Button(self.navbar, text="Page 2", command=self.show_page2)
+        self.page2_button = tk.Button(self.navbar, text="PDF", command=self.show_page2)
         self.page2_button.pack(side='left')
 
         self.show_page1()
-
-    def submit_button(self):
-        start_date = self.start_date_entry.get()
-        final_date = self.final_date_entry.get()
-
-        if not is_valid_date(start_date):
-            logger.error(f"Start Date: {start_date} is not in the correct format 'YYYY-MM-DD'")
-            return
-
-        if not is_valid_date(final_date):
-            logger.error(f"Final Date: {final_date} is not in the correct format 'YYYY-MM-DD'")
-            return
-
-        logger.info(f"Username: {self.username_entry.get()}")
-        logger.info(f"Start Date: {start_date}")
-        logger.info(f"Final Date: {final_date}")
 
     def show_page1(self):
         self.page2.pack_forget()
@@ -92,24 +54,32 @@ class Application(tk.Frame):
 
     def show_page2(self):
         self.page1.pack_forget()
+        self.update_tree()
         self.page2.pack(fill='both', expand=True)
 
+    def update_tree(self):
+        # Clear the existing tree
+        for i in self.tree.get_children():
+            self.tree.delete(i)
 
-class TextRedirector(object):
-    def __init__(self, widget):
-        self.widget = widget
+        # Fetch data from the database
+        data = self.fetch_data_from_database()
 
-    def write(self, message, tag=None):
-        self.widget.insert(tk.END, message, tag)
-        self.widget.see(tk.END)
+        # Create the treeview columns
+        self.tree['columns'] = list(data[0].keys())
+        for column in self.tree['columns']:
+            self.tree.heading(column, text=column)
 
-    def flush(self):
-        pass
+        # Insert the data into the treeview
+        for row in data:
+            self.tree.insert('', 'end', values=list(row.values()))
+
+    def fetch_data_from_database(self):
+        # This is a placeholder function. Replace this with your actual database fetching code.
+        return [
+            {'column1': 'data1', 'column2': 'data2'},
+            {'column1': 'data3', 'column2': 'data4'},
+            # Add more rows as needed...
+        ]
 
 
-def widget_sink(widget):
-    def sink(message):
-        widget.insert(tk.END, message)
-        widget.see(tk.END)
-
-    return sink
