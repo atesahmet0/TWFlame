@@ -4,7 +4,7 @@ from Application import Application
 
 
 def main():
-    root = tk.Tk()
+    root = tk.Tk(screenName="Tweet Scraper - Ateş Dijital")
     app = Application(master=root)
     app.mainloop()
 

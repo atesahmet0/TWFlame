@@ -2,7 +2,6 @@ import tkinter as tk
 from loguru import logger
 from tkinter import ttk
 import asyncio
-
 from BackendEngine import BackendEngine
 
 
@@ -23,8 +22,14 @@ class PDFPage(tk.Frame):
         self.username_entry = tk.Entry(self.input_field)
         self.username_entry.grid(row=0, column=1, sticky='w')
 
-        self.import_button = tk.Button(self, text="Import", command=self.import_button)
+        self.button_field = tk.Frame(self)
+        self.button_field.grid(row=1, column=0, sticky='nsew')
+
+        self.import_button = tk.Button(self.button_field, text="Import", command=self.import_button)
         self.import_button.grid(row=1, column=0, sticky='w')
+
+        self.turn_to_pdf_button = tk.Button(self.button_field, text="Turn to PDF", command=self.turn_to_pdf_button)
+        self.turn_to_pdf_button.grid(row=1, column=1, sticky='w')
 
         self.tree_table = ttk.Treeview(self, show='headings')
         self.tree_table.grid(row=2, column=0, sticky='nsew')
@@ -38,10 +43,7 @@ class PDFPage(tk.Frame):
 
     def on_load(self):
         # Code to execute when the frame is packed
-        try:
-            self._fetch_and_display_tweets()
-        except Exception as e:
-            logger.error(e)
+        pass
 
     def import_button(self):
         """Import all the data from the database and display it in the treeview."""
@@ -50,12 +52,26 @@ class PDFPage(tk.Frame):
         except Exception as e:
             logger.error(e)
 
+    def turn_to_pdf_button(self):
+        self.get_selected_rows()
+        pass
+
+    def get_selected_rows(self):
+        selected_items = self.tree_table.selection()  # This returns a list of item IDs for the currently selected items.
+        logger.info(f"Selected items: {selected_items}")
+        selected_rows = []
+        for item_id in selected_items:
+            item = self.tree_table.item(item_id)  # Get the item's data.
+            selected_rows.append(item['values'])  # Add the item's values to the list.
+        logger.info(f"Selected rows: {selected_rows}")
+        return selected_rows
+
     @staticmethod
     async def _fetch_tweets(username):
         """Fetch tweets from database for a given username."""
+        logger.info(f"Fetching tweets for {username}")
         backend = BackendEngine(username)
         await backend.setup()
-
         tweets = await backend.get_tweets_from_database()
         logger.info(f"Fetched {len(tweets)} tweets for {username}")
 
@@ -80,7 +96,12 @@ class PDFPage(tk.Frame):
         asyncio.set_event_loop(loop)
         tweets = loop.run_until_complete(self._fetch_tweets(username))
         logger.info(f"Fetched {len(tweets)} tweets for {username}")
+        self._update_tree(tweets)
         loop.close()
+
+    def _on_fetch_complete(self, future):
+        tweets = future.result()
+        logger.info(f"Fetched {len(tweets)} tweets for {tweets[0]['username']}")
         self._update_tree(tweets)
 
     def _update_tree(self, data):

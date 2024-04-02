@@ -34,7 +34,7 @@ class Database:
                 cursor.execute(f"""
                     CREATE TABLE IF NOT EXISTS {table_name} ({table_structure})
                 """)
-                logger.info("Table created successfully")
+                logger.info(f"Table {table_name} created successfully")
             except sqlite3.DatabaseError as e:
                 print(e)
                 raise DatabaseCantBeInitialized(e)
@@ -57,13 +57,13 @@ class Database:
                 print(e)
                 raise DatabaseCantBeInitialized(e)
 
-    def fetch_data(self, table_name, sort_by):
+    def fetch_data(self, table_name, sort_by: str = None):
         """Fetch data from the database, sorted by the specified column."""
         if self.conn:
             try:
                 cursor = self.conn.cursor()
                 cursor.execute(f"""
-                    SELECT * FROM {table_name} ORDER BY {sort_by} DESC
+                    SELECT * FROM {table_name} {"ORDER BY" + sort_by + "DESC" if not sort_by is None else ""}
                 """)
                 return cursor.fetchall()
             except DatabaseError as e:
@@ -102,15 +102,12 @@ class Database:
         cursor = self.conn.cursor()
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables = cursor.fetchall()
-        logger.info(f"Tables: {tables}")
 
         # Remove table names that don't start with "date"
         tables = [table for table in tables if table[0].startswith("date")]
-        logger.info(f"Tables: {tables}")
 
         # Remove "date" prefix and sort
         dates = [table[0][4:] for table in tables]
-        logger.info(f"Dates: {dates}")
 
         # Convert strings to datetime objects and sor
         sorted_dates = []
@@ -121,12 +118,12 @@ class Database:
                 logger.error(f"Couldn't convert date {date} to datetime object")
 
         sorted_dates = sorted(sorted_dates)
-        logger.info(f"Sorted dates: {sorted_dates}")
 
         # Convert datetime objects back to strings
         sorted_dates = [date.strftime('%Y%m%d') for date in sorted_dates]
         logger.info(f"Sorted dates: {sorted_dates}")
         return sorted_dates
+
 
 class DatabaseCantBeInitialized(Exception):
     pass

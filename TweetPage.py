@@ -3,6 +3,7 @@ from Helper import is_valid_date
 from loguru import logger
 import sys
 
+
 class TweetPage(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
@@ -35,8 +36,11 @@ class TweetPage(tk.Frame):
         self.date_info_label = tk.Label(self.input_frame, text="Date Format: 'YYYY-MM-DD'")
         self.date_info_label.grid(row=0, column=6, sticky='w')
 
-        self.submit_button = tk.Button(self, text="Submit", command=self.submit_button)
-        self.submit_button.grid(row=1, column=0, sticky='w')
+        self.button_field = tk.Frame(self)
+        self.button_field.grid(row=1, column=0, sticky='nsew')
+
+        self.submit_button = tk.Button(self.button_field, text="Fetch Tweets", command=self.submit_button)
+        self.submit_button.grid(row=0, column=0, sticky='w')
 
         self.console_output = tk.Text(self)
         self.console_output.grid(row=3, column=0, sticky='nsew')

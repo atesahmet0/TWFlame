@@ -127,7 +127,7 @@ class BackendEngine:
         logger.info(f"Fetching tweets from {date_start} to {date_end}")
         result = await self._tweet_engine.get_tweet_from_user_by_interval(self.get_current_user(), date_start, date_end,
                                                                           limit=1000)
-        logger.info(f"Result: {result}")
+        logger.info(f"Fetched {len(result)} tweets for {self.get_current_user().username}")
 
         self._database_manager.save_tweets(result)
         return result
