@@ -25,6 +25,7 @@ class BackendEngine:
     create multiple backend engines if you have to scrape more
     than one accounts
     """
+
     def __init__(self, username: str, api: API = None):
         self._state = State.NOT_SETUP
 
@@ -73,14 +74,23 @@ class BackendEngine:
 
         return self._user_engine.get_current_user()
 
-    async def get_tweets(self) -> list[SimpleTweet]:
+    async def get_tweets_from_database(self) -> list[SimpleTweet]:
         """
-        Set limit to higher if you want to fetch more. But don't exceed 1000 tweets per DAY!!!
-        :param limit:
-        :return: 
+        Fetch all tweets from the database
+        :return:
         """
         if self.get_current_state() != State.SETUP:
-            raise EngineNotSetupException("Backend Engine: backendengine is not setup.")
+            raise EngineNotSetupException("Backend Engine: backend engine is not setup.")
+
+        return self._database_manager.fetch_all_tweets()
+
+    async def fetch_all_tweets(self) -> list[SimpleTweet]:
+        """
+        Set limit to higher if you want to fetch more. But don't exceed 1000 tweets per DAY!!!
+        :return:
+        """
+        if self.get_current_state() != State.SETUP:
+            raise EngineNotSetupException("Backend Engine: backend engine is not setup.")
 
         logger.info(f"Fetching tweets for {self.get_current_user().username}")
 
@@ -90,6 +100,7 @@ class BackendEngine:
         return self._database_manager.fetch_latest_tweet()
 
     latest_fetch_date_timestamp = -1
+
     async def _get_tweet_one_more_day(self):
         """
         Fetch tweets for one more day
@@ -114,7 +125,8 @@ class BackendEngine:
         date_end = extract_date_from_datetime(datetime.fromtimestamp(date_end))
 
         logger.info(f"Fetching tweets from {date_start} to {date_end}")
-        result = await self._tweet_engine.get_tweet_from_user_by_interval(self.get_current_user(), date_start, date_end, limit=1000)
+        result = await self._tweet_engine.get_tweet_from_user_by_interval(self.get_current_user(), date_start, date_end,
+                                                                          limit=1000)
         logger.info(f"Result: {result}")
 
         self._database_manager.save_tweets(result)
