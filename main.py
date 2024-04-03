@@ -5,6 +5,7 @@ from Application import Application
 
 def main():
     root = tk.Tk(screenName="Tweet Scraper - Ateş Dijital")
+    root.title("Tweet Scraper - Ateş Dijital")
     app = Application(master=root)
     app.mainloop()
 

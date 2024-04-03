@@ -93,8 +93,10 @@ class AccountsPage(tk.Frame):
         task = asyncio.run_coroutine_threadsafe(self.api.pool.login_all(), self.loop)
 
         task.add_done_callback(lambda t: self.log_text.insert(tk.END, "Accounts logging in finished\n"))
+
     def remove_account_button(self):
-        pass
+        task = asyncio.run_coroutine_threadsafe(self.remove_account(), self.loop)
+        task.add_done_callback(lambda t: self.log_text.insert(tk.END, "Account removed successfully\n"))
 
     def list_accounts_button(self):
         # Create a task for the fetch_accounts coroutine
@@ -109,6 +111,9 @@ class AccountsPage(tk.Frame):
                                         self.username_password_entry.get(),
                                         self.email_entry.get(),
                                         self.email_password_entry.get())
+
+    async def remove_account(self):
+        await self.api.pool.delete_accounts(self.username_entry.get())
 
     async def fetch_accounts(self):
         database = Database(get_current_database())

@@ -3,6 +3,8 @@ from loguru import logger
 from tkinter import ttk
 import asyncio
 from BackendEngine import BackendEngine
+from SimpleTweet import SimpleTweet
+from TweetToPDFConverter import TweetToPDFConverter
 
 
 class PDFPage(tk.Frame):
@@ -53,8 +55,20 @@ class PDFPage(tk.Frame):
             logger.error(e)
 
     def turn_to_pdf_button(self):
-        self.get_selected_rows()
-        pass
+        selected_rows = self.get_selected_rows()
+
+        # Convert selected rows to SimpleTweet
+        tweets = []
+        for row in selected_rows:
+            tweet_id, username, content, date = row
+            tweet = SimpleTweet(tweet_id, username, content, date)
+            tweets.append(tweet)
+
+        # Convert SimpleTweet to PDF
+        converter = TweetToPDFConverter(tweets)
+        start_date_str = tweets[0].date
+        final_date_str = tweets[len(tweets) - 1].date
+        converter.convert_to_pdf(f"{username}_{start_date_str}_{final_date_str}.pdf")
 
     def get_selected_rows(self):
         selected_items = self.tree_table.selection()  # This returns a list of item IDs for the currently selected items.

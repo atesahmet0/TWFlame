@@ -10,6 +10,11 @@ def extract_date_from_tweet(tweet) -> str:
     return formatted_date
 
 
+def convert_to_datetime(final_date: str) -> datetime:
+    """Works only with dates in the format 'YYYY-MM-DD'."""
+    return datetime.strptime(final_date, '%Y-%m-%d')
+
+
 def is_valid_date(date_string: str) -> bool:
     try:
         datetime.strptime(date_string, '%Y-%m-%d')

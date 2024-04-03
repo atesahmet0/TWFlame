@@ -63,7 +63,7 @@ class Database:
             try:
                 cursor = self.conn.cursor()
                 cursor.execute(f"""
-                    SELECT * FROM {table_name} {"ORDER BY" + sort_by + "DESC" if not sort_by is None else ""}
+                    SELECT * FROM {table_name} {"ORDER BY " + sort_by + " DESC" if not sort_by is None else ""}
                 """)
                 return cursor.fetchall()
             except DatabaseError as e:

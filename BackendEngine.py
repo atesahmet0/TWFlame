@@ -7,7 +7,7 @@ from TweetEngine import TweetEngine
 from TweetEngine import State as TweetState
 from UserEngine import UserEngine, UserNotFoundException
 from UserEngine import State as UserState
-from Helper import is_valid_api, is_valid_username, extract_date_from_tweet_year_month_day, extract_date_from_datetime
+from Helper import is_valid_api, is_valid_username, convert_to_datetime, extract_date_from_datetime
 from twscrape import API, User
 from Config import get_current_database
 from Exceptions import ApiNotFoundException, EngineNotSetupException
@@ -84,9 +84,10 @@ class BackendEngine:
 
         return self._database_manager.fetch_all_tweets()
 
-    async def fetch_all_tweets(self) -> list[SimpleTweet]:
+    async def fetch_all_tweets(self, final_date: str = None):
         """
         Set limit to higher if you want to fetch more. But don't exceed 1000 tweets per DAY!!!
+        :final_date: Must be in YYYY-MM-DD format
         :return:
         """
         if self.get_current_state() != State.SETUP:
@@ -94,10 +95,11 @@ class BackendEngine:
 
         logger.info(f"Fetching tweets for {self.get_current_user().username}")
 
-        while self.latest_fetch_date_timestamp < (datetime.now() - timedelta(1)).timestamp():
+        while (self.latest_fetch_date_timestamp < (datetime.now() - timedelta(1)).timestamp()
+               and self.latest_fetch_date_timestamp < convert_to_datetime(final_date).timestamp()):
             await self._get_tweet_one_more_day()
 
-        return self._database_manager.fetch_latest_tweet()
+        logger.info(f"Fetching tweets for {self.get_current_user().username} is done.")
 
     latest_fetch_date_timestamp = -1
 

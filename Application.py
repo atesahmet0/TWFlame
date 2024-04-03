@@ -1,9 +1,7 @@
 import asyncio
 import threading
 import tkinter as tk
-
 from twscrape import API
-
 from AccountsPage import AccountsPage
 from PDFPage import PDFPage
 from TweetPage import TweetPage
@@ -26,9 +24,9 @@ class Application(tk.Frame):
 
     def create_widgets(self):
         # Page 1
-        self.page1 = TweetPage(self)
+        self.page1 = TweetPage(self.new_loop, self)
         self.page2 = PDFPage(self)
-        self.page3 = AccountsPage(self.api, self.new_loop)
+        self.page3 = AccountsPage(self.api, self.new_loop, self)
 
         # Navbar
         self.navbar = tk.Frame(self)
@@ -59,7 +57,7 @@ class Application(tk.Frame):
         self.page1.pack_forget()
         self.page2.pack_forget()
         self.page3.pack(fill='both', expand=True)
-    
+
     def destroy(self):
         # Stop the event loop
         self.new_loop.call_soon_threadsafe(self.new_loop.stop)
