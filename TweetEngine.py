@@ -32,7 +32,7 @@ class TweetEngine:
     def get_current_state(self):
         return self._state
 
-    async def get_tweet_from_user_by_interval(self, user: User, start_time: str, final_time: str, limit=1) -> list[Tweet]:
+    async def get_tweet_from_user_by_interval(self, user: User, start_time: str = "", final_time: str = "", limit=1) -> list[Tweet]:
         """
         Time is in YYYY-MM-DD format. Ex: 2023-01-01
         :param user:

@@ -28,6 +28,7 @@ class BackendEngine:
 
     def __init__(self, username: str, api: API = None):
         self._state = State.NOT_SETUP
+        self.username = username
 
         if not is_valid_username(username):
             raise UserNotFoundException("username parameter is not valid.")
@@ -114,22 +115,31 @@ class BackendEngine:
         logger.info(f"Fetching tweets for {self.get_current_user().username}")
 
         # Check where did we leave off
-        latest_tweet = self._database_manager.fetch_latest_tweet()
-        logger.info(f"Latest tweet: {latest_tweet}")
+        try:
+            latest_tweet = self._database_manager.fetch_latest_tweet()
+            # Extract date from latest_tweet
+            date_start = max(latest_tweet.date.timestamp(), self.latest_fetch_date_timestamp)
+            logger.info(f"Latest fetch date: {self.latest_fetch_date_timestamp}")
+            logger.info(f"Latest tweet date: {latest_tweet.date.timestamp()}")
+            date_end = date_start + 86400
+            self.latest_fetch_date_timestamp = date_end
+            logger.info(f"Latest tweet: {latest_tweet}")
 
-        # Extract date from latest_tweet
-        date_start = max(latest_tweet.date.timestamp(), self.latest_fetch_date_timestamp)
-        logger.info(f"Latest fetch date: {self.latest_fetch_date_timestamp}")
-        logger.info(f"Latest tweet date: {latest_tweet.date.timestamp()}")
-        date_end = date_start + 86400
-        self.latest_fetch_date_timestamp = date_end
-        date_start = extract_date_from_datetime(datetime.fromtimestamp(date_start))
-        date_end = extract_date_from_datetime(datetime.fromtimestamp(date_end))
+            date_start = extract_date_from_datetime(datetime.fromtimestamp(date_start))
+            date_end = extract_date_from_datetime(datetime.fromtimestamp(date_end))
 
-        logger.info(f"Fetching tweets from {date_start} to {date_end}")
-        result = await self._tweet_engine.get_tweet_from_user_by_interval(self.get_current_user(), date_start, date_end,
-                                                                          limit=1000)
-        logger.info(f"Fetched {len(result)} tweets for {self.get_current_user().username}")
+            logger.info(f"Fetching tweets from {date_start} to {date_end}")
+            result = await self._tweet_engine.get_tweet_from_user_by_interval(self.get_current_user(), date_start,
+                                                                              date_end,
+                                                                              limit=1000)
+            logger.info(f"Fetched {len(result)} tweets for {self.get_current_user().username}")
 
-        self._database_manager.save_tweets(result)
-        return result
+            self._database_manager.save_tweets(result)
+            return result
+        except Exception as e:
+            result = await self._tweet_engine.get_tweet_from_user_by_interval(self.get_current_user(),
+                                                                              limit=1000)
+            logger.info(f"Fetched {len(result)} tweets for {self.get_current_user().username}")
+
+            self._database_manager.save_tweets(result)
+            return result
