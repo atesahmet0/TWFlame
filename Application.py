@@ -25,7 +25,7 @@ class Application(tk.Frame):
     def create_widgets(self):
         # Page 1
         self.page1 = TweetPage(self.new_loop, self)
-        self.page2 = PDFPage(self)
+        self.page2 = PDFPage(self.api, self)
         self.page3 = AccountsPage(self.api, self.new_loop, self)
 
         # Navbar

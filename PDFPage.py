@@ -2,14 +2,18 @@ import tkinter as tk
 from loguru import logger
 from tkinter import ttk
 import asyncio
+
+from twscrape import API
+
 from BackendEngine import BackendEngine
 from SimpleTweet import SimpleTweet
 from TweetToPDFConverter import TweetToPDFConverter
 
 
 class PDFPage(tk.Frame):
-    def __init__(self, master=None):
+    def __init__(self, api: API, master=None):
         super().__init__(master)
+        self.api = api
         self.master = master
         self.pack(fill='both', expand=True)
         self.create_widgets()
@@ -50,7 +54,7 @@ class PDFPage(tk.Frame):
     def import_button(self):
         """Import all the data from the database and display it in the treeview."""
         try:
-            self._fetch_and_display_tweets()
+            asyncio.run(self._fetch_and_display_tweets())
         except Exception as e:
             logger.error(e)
 
@@ -80,11 +84,10 @@ class PDFPage(tk.Frame):
         logger.info(f"Selected rows: {selected_rows}")
         return selected_rows
 
-    @staticmethod
-    async def _fetch_tweets(username):
+    async def _fetch_tweets(self, username):
         """Fetch tweets from database for a given username."""
         logger.info(f"Fetching tweets for {username}")
-        backend = BackendEngine(username)
+        backend = BackendEngine(username, self.api)
         await backend.setup()
         tweets = await backend.get_tweets_from_database()
         logger.info(f"Fetched {len(tweets)} tweets for {username}")
@@ -102,13 +105,13 @@ class PDFPage(tk.Frame):
 
         return data
 
-    def _fetch_and_display_tweets(self):
+    async def _fetch_and_display_tweets(self):
         """Use this to update treeview"""
         username = self.username_entry.get()
         logger.info(f"Fetching tweets for {username}")
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        tweets = loop.run_until_complete(self._fetch_tweets(username))
+        tweets = await self._fetch_tweets(username)
         logger.info(f"Fetched {len(tweets)} tweets for {username}")
         self._update_tree(tweets)
         loop.close()
