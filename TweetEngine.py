@@ -3,6 +3,7 @@ from twscrape import API, User, Tweet, gather
 from Exceptions import ApiNotFoundException, EngineNotSetupException
 from Helper import is_valid_api, is_valid_user
 from UserEngine import UserNotFoundException
+from loguru import logger
 
 class State(Enum):
     SETUP = 0,
@@ -32,9 +33,10 @@ class TweetEngine:
     def get_current_state(self):
         return self._state
 
-    async def get_tweet_from_user_by_interval(self, user: User, start_time: str = "", final_time: str = "", limit=1) -> list[Tweet]:
+    async def get_tweet_from_user_by_interval(self, user: User, start_time: str = "", final_time: str = "", limit: int = 1) -> list[Tweet]:
         """
         Time is in YYYY-MM-DD format. Ex: 2023-01-01
+        :param limit:
         :param user:
         :param start_time:
         :param final_time:
@@ -54,7 +56,8 @@ class TweetEngine:
         if len(final_time) != 0:
             search_query += f" until:%s" % final_time
 
-        print(f"TweetEngine: Given search query is: %s" % search_query)
+        logger.info(f"TweetEngine: Given search query is: %s" % search_query)
 
-        return await gather(self._api.search(search_query, limit=limit))
-
+        result = await gather(self._api.search(search_query, limit=limit))
+        logger.info(f"TweetEngine: Fetched {len(result)} tweets.")
+        return result

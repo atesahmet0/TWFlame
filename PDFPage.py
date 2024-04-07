@@ -8,6 +8,7 @@ import asyncio
 from twscrape import API
 
 from BackendEngine import BackendEngine
+from DatabaseManager import DatabaseManager
 from SimpleTweet import SimpleTweet
 from TweetToPDFConverter import TweetToPDFConverter
 
@@ -89,9 +90,8 @@ class PDFPage(tk.Frame):
     async def _fetch_tweets(self, username):
         """Fetch tweets from database for a given username."""
         logger.info(f"Fetching tweets for {username}")
-        backend = BackendEngine(username, self.api)
-        await backend.setup()
-        tweets = await backend.get_tweets_from_database()
+        database_manager = DatabaseManager(username)
+        tweets = database_manager.fetch_all_tweets()
         logger.info(f"Fetched {len(tweets)} tweets for {username}")
 
         # Convert the SimpleTweet objects into dictionaries

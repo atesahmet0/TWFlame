@@ -7,7 +7,7 @@ from TweetEngine import TweetEngine
 from TweetEngine import State as TweetState
 from UserEngine import UserEngine, UserNotFoundException
 from UserEngine import State as UserState
-from Helper import is_valid_api, is_valid_username, convert_to_datetime, extract_date_from_datetime
+from Helper import is_valid_api, is_valid_username, convert_to_datetime, extract_date_from_datetime, is_valid_date
 from twscrape import API, User
 from Config import get_current_database
 from Exceptions import ApiNotFoundException, EngineNotSetupException
@@ -73,7 +73,9 @@ class BackendEngine:
         if self.get_current_state() != State.SETUP:
             raise EngineNotSetupException("")
 
-        return self._user_engine.get_current_user()
+        user = self._user_engine.get_current_user()
+        logger.info(f"Current user: {user.username}")
+        return user
 
     async def get_tweets_from_database(self) -> list[SimpleTweet]:
         """
@@ -83,63 +85,41 @@ class BackendEngine:
         if self.get_current_state() != State.SETUP:
             raise EngineNotSetupException("Backend Engine: backend engine is not setup.")
 
-        return self._database_manager.fetch_all_tweets()
+        tweets = self._database_manager.fetch_all_tweets()
+        logger.info(f"Fetched {len(tweets)} tweets from database")
+        return tweets
 
-    async def fetch_all_tweets(self, start_date: str = None, final_date: str = None):
+    async def fetch_all_tweets(self, start_date: str = None, final_date: str = None) -> None:
         """
         Set limit to higher if you want to fetch more. But don't exceed 1000 tweets per DAY!!!
+        :start_date: Must be in YYYY-MM-DD format
         :final_date: Must be in YYYY-MM-DD format
-        :return:
         """
         if self.get_current_state() != State.SETUP:
             raise EngineNotSetupException("Backend Engine: backend engine is not setup.")
 
+        if start_date != "" and not is_valid_date(start_date):
+            logger.info(f"Start Date: {start_date} is not in the correct format 'YYYY-MM-DD'")
+            return
+
+        if final_date != "" and not is_valid_date(final_date):
+            logger.info(f"Final Date: {final_date} is not in the correct format 'YYYY-MM-DD'")
+            return
+
         logger.info(f"Fetching tweets for {self.get_current_user().username}")
 
-        while (self.latest_fetch_date_timestamp < (datetime.now() - timedelta(1)).timestamp()
-               and self.latest_fetch_date_timestamp < convert_to_datetime(final_date).timestamp()):
-            await self._get_tweet_one_more_day()
+        start_timestamp = int(convert_to_datetime(start_date).timestamp())
+        end_timestamp = int(convert_to_datetime(final_date).timestamp())
+
+        for timestamp in range(start_timestamp, end_timestamp, 86400):
+            end = timestamp + 86400
+            start_string = extract_date_from_datetime(datetime.fromtimestamp(timestamp))
+            end_string = extract_date_from_datetime(datetime.fromtimestamp(end))
+            logger.info(f"Fetching tweets from {start_string} to {end_string}")
+
+            result = await self._tweet_engine.get_tweet_from_user_by_interval(self.get_current_user(),
+                                                                              start_string, end_string, limit=1000)
+            logger.info(f"Fetched {len(result)} tweets for {self.get_current_user().username}")
+            self._database_manager.save_tweets(result)
 
         logger.info(f"Fetching tweets for {self.get_current_user().username} is done.")
-
-    latest_fetch_date_timestamp = -1
-
-    async def _get_tweet_one_more_day(self):
-        """
-        Fetch tweets for one more day
-        :return: Newly fetched tweets
-        """
-        if self.get_current_state() != State.SETUP:
-            raise EngineNotSetupException("Backend Engine: backendengine is not setup.")
-
-        logger.info(f"Fetching tweets for {self.get_current_user().username}")
-
-        # Check where did we leave off
-        try:
-            latest_tweet = self._database_manager.fetch_latest_tweet()
-            # Extract date from latest_tweet
-            date_start = max(latest_tweet.date.timestamp(), self.latest_fetch_date_timestamp)
-            logger.info(f"Latest fetch date: {self.latest_fetch_date_timestamp}")
-            logger.info(f"Latest tweet date: {latest_tweet.date.timestamp()}")
-            date_end = date_start + 86400
-            self.latest_fetch_date_timestamp = date_end
-            logger.info(f"Latest tweet: {latest_tweet}")
-
-            date_start = extract_date_from_datetime(datetime.fromtimestamp(date_start))
-            date_end = extract_date_from_datetime(datetime.fromtimestamp(date_end))
-
-            logger.info(f"Fetching tweets from {date_start} to {date_end}")
-            result = await self._tweet_engine.get_tweet_from_user_by_interval(self.get_current_user(), date_start,
-                                                                              date_end,
-                                                                              limit=1000)
-            logger.info(f"Fetched {len(result)} tweets for {self.get_current_user().username}")
-
-            self._database_manager.save_tweets(result)
-            return result
-        except Exception as e:
-            result = await self._tweet_engine.get_tweet_from_user_by_interval(self.get_current_user(),
-                                                                              limit=1000)
-            logger.info(f"Fetched {len(result)} tweets for {self.get_current_user().username}")
-
-            self._database_manager.save_tweets(result)
-            return result
