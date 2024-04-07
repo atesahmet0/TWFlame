@@ -1,4 +1,6 @@
 import tkinter as tk
+from datetime import datetime
+
 from loguru import logger
 from tkinter import ttk
 import asyncio
@@ -72,7 +74,7 @@ class PDFPage(tk.Frame):
         converter = TweetToPDFConverter(tweets)
         start_date_str = tweets[0].date
         final_date_str = tweets[len(tweets) - 1].date
-        converter.convert_to_pdf(f"{username}_{start_date_str}_{final_date_str}.pdf")
+        converter.convert_to_pdf(f"{username}_{datetime.now().timestamp()}.pdf")
 
     def get_selected_rows(self):
         selected_items = self.tree_table.selection()  # This returns a list of item IDs for the currently selected items.

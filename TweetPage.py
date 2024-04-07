@@ -87,7 +87,7 @@ class TweetPage(tk.Frame):
         backend = BackendEngine(self.username_entry.get())
         await backend.setup()
         logger.info(f"Backend Engine: {backend.get_current_state()}")
-        return await backend.fetch_all_tweets(self.final_date_entry.get())
+        return await backend.fetch_all_tweets(self.start_date_entry.get(), self.final_date_entry.get())
 
     def redirect_stdout(self, widget):
         # Redirect stdout to the console_output

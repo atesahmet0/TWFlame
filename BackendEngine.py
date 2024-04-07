@@ -85,7 +85,7 @@ class BackendEngine:
 
         return self._database_manager.fetch_all_tweets()
 
-    async def fetch_all_tweets(self, final_date: str = None):
+    async def fetch_all_tweets(self, start_date: str = None, final_date: str = None):
         """
         Set limit to higher if you want to fetch more. But don't exceed 1000 tweets per DAY!!!
         :final_date: Must be in YYYY-MM-DD format
