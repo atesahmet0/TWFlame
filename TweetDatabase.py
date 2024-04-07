@@ -17,7 +17,7 @@ class TweetDatabase(Database):
 
     def _store_tweet(self, tweet: Tweet):
         """ store a tweet in the database """
-        logger.info(f"Storing tweet: {tweet}")
+        logger.info(f"Storing tweet: {tweet.id}")
         tweet_date = extract_date_from_tweet_year_month_day(tweet)
         table_structure = """
             id TEXT PRIMARY KEY,
