@@ -1,3 +1,4 @@
 twscrape
 loguru
 reportlab
+asyncio
