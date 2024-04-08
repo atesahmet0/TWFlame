@@ -56,6 +56,7 @@ Input username then provide dates to scrape Tweets. Note that dates must be "Yea
 ### PDF Page
 <img width="876" alt="atesdijtial.com Tweet Scraper's PDF Page" src="https://github.com/atesahmet0/TWFlame/assets/85938355/5c021827-8416-4a49-b9b0-d0a8a9350bd4">
 
+There is an example database that has ~500 tweets. Use "TansuYegen" as username to test PDF Page.
 Input username then click import to fetch all the tweets of the user that is stored in the database. Select tweets that you want then click
 turn to pdf button. PDF will be stored in the same directory as "main.py" file.
 
