@@ -11,6 +11,7 @@ Python dependencies are
 - twscrape
 - loguru
 - reportlab
+- asyncio
 
 To install dependencies use: `python3 -m pip install -r requirements.txt`
 
