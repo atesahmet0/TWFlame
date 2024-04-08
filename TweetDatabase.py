@@ -10,6 +10,7 @@ class TweetDatabase(Database):
     """
     Database per user
     """
+
     def __init__(self, username):
         super().__init__(username)
         self.username = username
@@ -27,8 +28,8 @@ class TweetDatabase(Database):
         """
         self.create_table(self.format_table_name(extract_date_from_tweet_year_month_day(tweet)), table_structure)
 
-        self.store_data(tweet_date,     'id, username, rawContent, date', (tweet.id, tweet.user.username, tweet.rawContent, tweet.date.timestamp()))
-
+        self.store_data(tweet_date, 'id, username, rawContent, date',
+                        (tweet.id, tweet.user.username, tweet.rawContent, tweet.date.timestamp()))
 
     def save_tweets(self, tweets: list[Tweet]) -> None:
         """ save tweets in the database """
@@ -42,7 +43,8 @@ class TweetDatabase(Database):
         for key in fetched.keys():
             list = fetched[key]
             for tweet_as_list in list:
-                tweet = SimpleTweet(id=tweet_as_list[0], username=tweet_as_list[1], rawContent=tweet_as_list[2], date=datetime.fromtimestamp(tweet_as_list[3]))
+                tweet = SimpleTweet(id=tweet_as_list[0], username=tweet_as_list[1], rawContent=tweet_as_list[2],
+                                    date=datetime.fromtimestamp(tweet_as_list[3]))
                 result.append(tweet)
         return result
 
@@ -51,7 +53,8 @@ class TweetDatabase(Database):
         result = []
         fetched = self.fetch_data(self.format_table_name(table_name), 'date')
         for tweet_as_list in fetched:
-            tweet = SimpleTweet(id=tweet_as_list[0], username=tweet_as_list[1], rawContent=tweet_as_list[2], date=datetime.fromtimestamp(tweet_as_list[3]))
+            tweet = SimpleTweet(id=tweet_as_list[0], username=tweet_as_list[1], rawContent=tweet_as_list[2],
+                                date=datetime.fromtimestamp(tweet_as_list[3]))
             result.append(tweet)
         return result
 
