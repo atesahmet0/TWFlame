@@ -40,6 +40,9 @@ class PDFPage(tk.Frame):
         self.turn_to_pdf_button = tk.Button(self.button_field, text="Turn to PDF", command=self.turn_to_pdf_button)
         self.turn_to_pdf_button.grid(row=1, column=1, sticky='w')
 
+        self.select_all_button = tk.Button(self.button_field, text="Select All", command=self.select_all_button)
+        self.select_all_button.grid(row=1, column=2, sticky='w')
+
         self.tree_table = ttk.Treeview(self, show='headings')
         self.tree_table.grid(row=2, column=0, sticky='nsew')
 
@@ -76,6 +79,10 @@ class PDFPage(tk.Frame):
         start_date_str = tweets[0].date
         final_date_str = tweets[len(tweets) - 1].date
         converter.convert_to_pdf(f"{username}_{datetime.now().timestamp()}.pdf")
+
+    def select_all_button(self):
+        all_items = self.tree_table.get_children()
+        self.tree_table.selection_set(all_items)
 
     def get_selected_rows(self):
         selected_items = self.tree_table.selection()  # This returns a list of item IDs for the currently selected items.
